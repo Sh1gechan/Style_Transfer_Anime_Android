@@ -2,6 +2,7 @@
 
 ## 説明
 AnimeGANのTFliteモデルをAndroid上で実行するためのアプリケーション
+app/release/内にapkファイルを入れておきます。
 
 ## TODO
 - [ ]キモいUIをなんとかする

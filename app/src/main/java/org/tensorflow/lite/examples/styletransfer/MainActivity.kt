@@ -131,6 +131,7 @@ class MainActivity :
         }
         mainScope.async(inferenceThread) {
           styleTransferModelExecutor.close()
+          // プルダウンボタンの選択イベントを処理するためのコード
           styleTransferModelExecutor = StyleTransferModelExecutor(
             this@MainActivity,
             useGPU,

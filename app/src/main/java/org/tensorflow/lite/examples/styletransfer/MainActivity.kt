@@ -79,7 +79,7 @@ class MainActivity :
   CameraFragment.OnCaptureFinished {
 
   private var isRunningModel = false
-  private var selectedStyle: String = "nope"
+  private var selectedStyle: String = "paprika_style"
 
   private lateinit var cameraFragment: CameraFragment
   private lateinit var viewModel: MLExecutionViewModel
@@ -119,25 +119,31 @@ class MainActivity :
 
     // プルダウンボタンの初期化
     val styleSpinner: Spinner = findViewById(R.id.style_spinner)
-    val styles = arrayOf("Hayao Style", "Paprika Style", "Selfie2Anime Style")
+    val styles = arrayOf("Hayao Style", "Paprika Style")
     val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, styles)
     styleSpinner.adapter = adapter
     styleSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
       override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
-        // 選択されたスタイルに応じて、selectedStyle を更新する
         selectedStyle = when (position) {
-          1 -> "animeganv2_hayao_256x256_float16_quant"
-          2 -> "animeganv2_paprika_256x256_float16_quant"
-          3 -> "selfie2anime_256x256_float16_quant"
+          0 -> "hayao_style"
+          1 -> "paprika_style"
           else -> "nope"
+        }
+        mainScope.async(inferenceThread) {
+          styleTransferModelExecutor.close()
+          styleTransferModelExecutor = StyleTransferModelExecutor(
+            this@MainActivity,
+            useGPU,
+            selectedStyle
+          )
         }
       }
 
       override fun onNothingSelected(parent: AdapterView<*>) {
-        // 何も選択されなかった場合の処理
         selectedStyle = "nope"
       }
     }
+
 
 
     // Request camera permissions

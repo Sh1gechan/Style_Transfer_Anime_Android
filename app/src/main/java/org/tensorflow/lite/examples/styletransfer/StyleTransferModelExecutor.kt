@@ -28,10 +28,12 @@ import kotlin.collections.set
 import org.tensorflow.lite.Interpreter
 import org.tensorflow.lite.gpu.GpuDelegate
 
+
+// TODO MainActivity.ktでのプルダウンボタンの選択結果を反映し、モデルを切り替えるコードを追加する
 class StyleTransferModelExecutor(
   context: Context,
   private var useGPU: Boolean = false,
-  var selectedModel: String = "paprika_style"
+  var selectedModel: String = "hayao_style"
 
 ) {
   private var gpuDelegate: GpuDelegate? = null
@@ -49,7 +51,6 @@ class StyleTransferModelExecutor(
     val modelFileName = when (selectedModel) {
       "hayao_style" -> HAYAO_MODEL
       "paprika_style" -> PAPRIKA_MODEL
-      "selfie2anime" -> SELFIE_MODEL
       else -> throw IllegalArgumentException("Invalid style model")
     }
 
@@ -65,7 +66,6 @@ class StyleTransferModelExecutor(
     private const val CONTENT_IMAGE_SIZE = 256
     private const val HAYAO_MODEL = "animeganv2_hayao_256x256_float16_quant.tflite"
     private const val PAPRIKA_MODEL = "animeganv2_paprika_256x256_float16_quant.tflite"
-    private const val SELFIE_MODEL = "selfie2anime_256x256_float16_quant.tflite"
   }
 
   fun execute(
@@ -127,6 +127,8 @@ class StyleTransferModelExecutor(
     }
   }
 
+
+
   @Throws(IOException::class)
   private fun loadModelFile(context: Context, modelFile: String): MappedByteBuffer {
     val fileDescriptor = context.assets.openFd(modelFile)
@@ -138,6 +140,8 @@ class StyleTransferModelExecutor(
     fileDescriptor.close()
     return retFile
   }
+
+
 
   @Throws(IOException::class)
   private fun getInterpreter(

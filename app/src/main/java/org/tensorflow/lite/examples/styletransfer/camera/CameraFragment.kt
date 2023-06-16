@@ -537,6 +537,4 @@ class CameraFragment : Fragment() {
       }
     }
   }
-
-
 }

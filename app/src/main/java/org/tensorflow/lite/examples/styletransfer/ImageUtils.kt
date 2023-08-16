@@ -19,8 +19,12 @@ package org.tensorflow.lite.examples.styletransfer
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.ColorMatrix
+import android.graphics.ColorMatrixColorFilter
 import android.graphics.Matrix
+import android.graphics.Paint
 import android.graphics.RectF
 import android.util.Log
 import androidx.exifinterface.media.ExifInterface

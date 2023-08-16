@@ -119,7 +119,7 @@ class MainActivity :
 
     // プルダウンボタンの初期化
     val styleSpinner: Spinner = findViewById(R.id.style_spinner)
-    val styles = arrayOf("Paprika Style", "Hayao Style", "selfie2anime", "ANIME SKETCH")
+    val styles = arrayOf("Paprika Style", "Hayao Style", "selfie2anime", "anime_sketch", "open_sketch", "contour_style")
     val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, styles)
     styleSpinner.adapter = adapter
     styleSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
@@ -128,6 +128,9 @@ class MainActivity :
           0 -> "paprika_style"
           1 -> "hayao_style"
           2 -> "selfie2anime"
+          3 -> "anime_sketch"
+          4 -> "open_sketch"
+          5 -> "contour_style"
           else -> "paprika_style" // デフォルト値を指定
         }
         mainScope.async(inferenceThread) {

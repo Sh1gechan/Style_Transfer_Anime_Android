@@ -51,7 +51,10 @@ class StyleTransferModelExecutor(
     val modelFileName = when (selectedModel) {
       "hayao_style" -> HAYAO_MODEL
       "paprika_style" -> PAPRIKA_MODEL
-      "rough_sketch" -> SELFIE_MODEL
+      "selfie2anime" -> SELFIE_MODEL
+      "anime_sketch" -> ANIME_SKETCH_MODEL
+      "open_sketch" -> OPENSKETCH_MODEL
+      "contour_style" -> CONTOUR_MODEL
       else -> throw IllegalArgumentException("Invalid style model")
     }
 
@@ -67,8 +70,10 @@ class StyleTransferModelExecutor(
     private const val CONTENT_IMAGE_SIZE = 256
     private const val HAYAO_MODEL = "animeganv2_hayao_256x256_float16_quant.tflite"
     private const val PAPRIKA_MODEL = "animeganv2_paprika_256x256_float16_quant.tflite"
+    private const val ANIME_SKETCH_MODEL = "anime_style_256x256_float16.tflite"
+    private const val OPENSKETCH_MODEL = "opensketch_style_256x256_float16.tflite"
+    private const val CONTOUR_MODEL = "contour_style_256x256_float16.tflite"
     private const val SELFIE_MODEL = "selfie2anime_256x256_float16_quant.tflite"
-
   }
 
   fun execute(
@@ -143,8 +148,6 @@ class StyleTransferModelExecutor(
     fileDescriptor.close()
     return retFile
   }
-
-
 
   @Throws(IOException::class)
   private fun getInterpreter(

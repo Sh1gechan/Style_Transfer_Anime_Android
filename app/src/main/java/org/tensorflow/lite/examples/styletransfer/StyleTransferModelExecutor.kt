@@ -17,6 +17,7 @@
 package org.tensorflow.lite.examples.styletransfer
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.os.SystemClock
 import android.util.Log
 import java.io.File
@@ -29,7 +30,7 @@ import org.tensorflow.lite.Interpreter
 import org.tensorflow.lite.gpu.GpuDelegate
 
 
-// TODO MainActivity.ktでのプルダウンボタンの選択結果を反映し、モデルを切り替えるコードを追加する
+
 class StyleTransferModelExecutor(
   context: Context,
   private var useGPU: Boolean = false,
@@ -51,6 +52,10 @@ class StyleTransferModelExecutor(
     val modelFileName = when (selectedModel) {
       "hayao_style" -> HAYAO_MODEL
       "paprika_style" -> PAPRIKA_MODEL
+      "selfie2anime" -> SELFIE_MODEL
+      "anime_sketch" -> ANIME_SKETCH_MODEL
+      "open_sketch" -> OPENSKETCH_MODEL
+      "contour_style" -> CONTOUR_MODEL
       else -> throw IllegalArgumentException("Invalid style model")
     }
 
@@ -66,6 +71,10 @@ class StyleTransferModelExecutor(
     private const val CONTENT_IMAGE_SIZE = 256
     private const val HAYAO_MODEL = "animeganv2_hayao_256x256_float16_quant.tflite"
     private const val PAPRIKA_MODEL = "animeganv2_paprika_256x256_float16_quant.tflite"
+    private const val SELFIE_MODEL = "selfie2anime_256x256_float16_quant.tflite"
+    private const val ANIME_SKETCH_MODEL = "anime_style_256x256_float16.tflite"
+    private const val OPENSKETCH_MODEL = "opensketch_style_256x256_float16.tflite"
+    private const val CONTOUR_MODEL = "contour_style_256x256_float16.tflite"
   }
 
   fun execute(
@@ -82,12 +91,24 @@ class StyleTransferModelExecutor(
       val contentArray =
         ImageUtils.bitmapToByteBuffer(contentImage, CONTENT_IMAGE_SIZE, CONTENT_IMAGE_SIZE)
       val inputsForStyleTransfer = arrayOf(contentArray)
+
+      // Executeメソッド内のoutputsForStyleTransferの初期化部分
       val outputsForStyleTransfer = HashMap<Int, Any>()
       val outputImage =
-        Array(1) { Array(CONTENT_IMAGE_SIZE) { Array(CONTENT_IMAGE_SIZE) { FloatArray(3) } } }
+        if (selectedModel == "anime_sketch" || selectedModel == "open_sketch" || selectedModel == "contour_style") {
+          Array(1) { Array(CONTENT_IMAGE_SIZE) { Array(CONTENT_IMAGE_SIZE) { FloatArray(1) } } }
+        } else {
+          Array(1) { Array(CONTENT_IMAGE_SIZE) { Array(CONTENT_IMAGE_SIZE) { FloatArray(3) } } }
+        }
       outputsForStyleTransfer[0] = outputImage
-      Log.i(TAG, "init image"+inputsForStyleTransfer)
+
+
+      Log.i(TAG, "init image " + inputsForStyleTransfer)
       styleTransferTime = SystemClock.uptimeMillis()
+
+      // モデルの実行前のログ
+      Log.d(TAG, "Starting model execution for $selectedModel")
+
       interpreterTransform.runForMultipleInputsOutputs(
         inputsForStyleTransfer,
         outputsForStyleTransfer
@@ -95,9 +116,33 @@ class StyleTransferModelExecutor(
       styleTransferTime = SystemClock.uptimeMillis() - styleTransferTime
       Log.d(TAG, "Style apply Time to run: $styleTransferTime")
 
+      // interpreterTransform.getOutputTensor(0) の戻り値が正しく取得できているかを確認
+      val outputTensor = interpreterTransform.getOutputTensor(0)
+      Log.d(TAG, "Output Tensor: $outputTensor")
+
+      // モデルの実行後のログ
+      Log.d(TAG, "Model execution completed for $selectedModel")
+      val outputShape = interpreterTransform.getOutputTensor(0).shape().contentToString()
+      Log.d(TAG, "Model Output Shape: $outputShape")
+
+      // スタイル適用処理前のログ
+      Log.d(TAG, "Applying style for $selectedModel")
+
       postProcessTime = SystemClock.uptimeMillis()
-      var styledImage =
-        ImageUtils.convertArrayToBitmap(outputImage, CONTENT_IMAGE_SIZE, CONTENT_IMAGE_SIZE)
+//      var styledImage =
+//        ImageUtils.convertArrayToBitmap(outputImage, CONTENT_IMAGE_SIZE, CONTENT_IMAGE_SIZE)
+
+      // Executeメソッド内のstyledImageの生成部分
+      var styledImage: Bitmap
+      if (selectedModel == "anime_sketch" || selectedModel == "open_sketch" || selectedModel == "contour_style") {
+        Log.d(TAG, "Converting to grayscale bitmap")
+        styledImage = ImageUtils.convertArrayToGrayscaleBitmap(outputImage, CONTENT_IMAGE_SIZE, CONTENT_IMAGE_SIZE)
+      } else {
+        Log.d(TAG, "Converting to color bitmap")
+        styledImage = ImageUtils.convertArrayToBitmap(outputImage, CONTENT_IMAGE_SIZE, CONTENT_IMAGE_SIZE)
+      }
+
+
       postProcessTime = SystemClock.uptimeMillis() - postProcessTime
 
       fullExecutionTime = SystemClock.uptimeMillis() - fullExecutionTime
@@ -131,6 +176,8 @@ class StyleTransferModelExecutor(
 
   @Throws(IOException::class)
   private fun loadModelFile(context: Context, modelFile: String): MappedByteBuffer {
+    try {
+      Log.d(TAG, "Loading model file: $modelFile")
     val fileDescriptor = context.assets.openFd(modelFile)
     val inputStream = FileInputStream(fileDescriptor.fileDescriptor)
     val fileChannel = inputStream.channel
@@ -139,9 +186,11 @@ class StyleTransferModelExecutor(
     val retFile = fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength)
     fileDescriptor.close()
     return retFile
+    } catch (e: IOException) {
+      Log.e(TAG, "Failed to load model file: $modelFile", e)
+      throw e
+    }
   }
-
-
 
   @Throws(IOException::class)
   private fun getInterpreter(
@@ -149,7 +198,10 @@ class StyleTransferModelExecutor(
     modelName: String,
     useGpu: Boolean = false
   ): Interpreter {
-    val tfliteOptions = Interpreter.Options()
+    try {
+      Log.d(TAG, "Getting interpreter for model: $modelName, useGPU: $useGpu")
+
+      val tfliteOptions = Interpreter.Options()
     tfliteOptions.setNumThreads(numberThreads)
 
     gpuDelegate = null
@@ -160,7 +212,11 @@ class StyleTransferModelExecutor(
 
     tfliteOptions.setNumThreads(numberThreads)
     return Interpreter(loadModelFile(context, modelName), tfliteOptions)
-  }
+    } catch (e: IOException) {
+      Log.e(TAG, "Failed to get interpreter for model: $modelName", e)
+      throw e
+    }
+    }
 
   private fun formatExecutionLog(): String {
     val sb = StringBuilder()

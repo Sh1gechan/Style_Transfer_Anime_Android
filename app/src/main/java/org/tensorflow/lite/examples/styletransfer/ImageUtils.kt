@@ -19,8 +19,12 @@ package org.tensorflow.lite.examples.styletransfer
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.ColorMatrix
+import android.graphics.ColorMatrixColorFilter
 import android.graphics.Matrix
+import android.graphics.Paint
 import android.graphics.RectF
 import android.util.Log
 import androidx.exifinterface.media.ExifInterface
@@ -86,6 +90,8 @@ abstract class ImageUtils {
       )
       exif.saveAttributes()
     }
+
+
 
     /** Transforms rotation and mirroring information into one of the [ExifInterface] constants */
     fun computeExifOrientation(rotationDegrees: Int, mirrored: Boolean) = when {
@@ -205,24 +211,34 @@ abstract class ImageUtils {
       imageWidth: Int,
       imageHeight: Int
     ): Bitmap {
-//      int color = (A & 0xff) << 24 | (B & 0xff) << 16 | (G & 0xff) << 8 | (R & 0xff);
-      val conf = Bitmap.Config.ARGB_8888 // see other conf types
-      val styledImage = Bitmap.createBitmap(imageWidth, imageHeight, conf)
-
+      val styledImage = Bitmap.createBitmap(imageWidth, imageHeight, Bitmap.Config.ARGB_8888)
       for (x in imageArray[0].indices) {
         for (y in imageArray[0][0].indices) {
-
-          val color = Color.rgb(
-            ((imageArray[0][x][y][0]+1)/2 * 255).toInt(),
-            ((imageArray[0][x][y][1]+1)/2 * 255).toInt(),
-            ((imageArray[0][x][y][2]+1)/2 * 255).toInt()
+          val color = Color.argb(
+            255,
+            ((imageArray[0][x][y][0] + 1) / 2 * 255).toInt(),
+            ((imageArray[0][x][y][1] + 1) / 2 * 255).toInt(),
+            ((imageArray[0][x][y][2] + 1) / 2 * 255).toInt()
           )
-
-          // this y, x is in the correct order!!!
           styledImage.setPixel(y, x, color)
         }
       }
       return styledImage
+    }
+    fun convertArrayToGrayscaleBitmap(
+      outputArray: Array<Array<Array<FloatArray>>>,
+      width: Int,
+      height: Int
+    ): Bitmap {
+      val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+      for (x in 0 until width) {
+        for (y in 0 until height) {
+          val grayValue = (outputArray[0][x][y][0] * 255).toInt()
+          val color = Color.rgb(grayValue, grayValue, grayValue)
+          bitmap.setPixel(y, x, color)  // setPixel の引数を修正しています
+        }
+      }
+      return bitmap
     }
   }
 }

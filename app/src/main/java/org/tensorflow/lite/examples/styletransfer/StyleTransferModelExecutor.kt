@@ -71,17 +71,10 @@ class StyleTransferModelExecutor(
     private const val CONTENT_IMAGE_SIZE = 256
     private const val HAYAO_MODEL = "animeganv2_hayao_256x256_float16_quant.tflite"
     private const val PAPRIKA_MODEL = "animeganv2_paprika_256x256_float16_quant.tflite"
-<<<<<<< HEAD
     private const val SELFIE_MODEL = "selfie2anime_256x256_float16_quant.tflite"
     private const val ANIME_SKETCH_MODEL = "anime_style_256x256_float16.tflite"
     private const val OPENSKETCH_MODEL = "opensketch_style_256x256_float16.tflite"
     private const val CONTOUR_MODEL = "contour_style_256x256_float16.tflite"
-=======
-    private const val ANIME_SKETCH_MODEL = "anime_style_256x256_float16.tflite"
-    private const val OPENSKETCH_MODEL = "opensketch_style_256x256_float16.tflite"
-    private const val CONTOUR_MODEL = "contour_style_256x256_float16.tflite"
-    private const val SELFIE_MODEL = "selfie2anime_256x256_float16_quant.tflite"
->>>>>>> 0a55a717a75e48574ba77c1568b00d567e076633
   }
 
   fun execute(
